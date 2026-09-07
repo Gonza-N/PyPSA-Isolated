@@ -1,4 +1,4 @@
-asset_id,asset_type,zone,technology,product,installed_capacity_mw,p_nom_max_mw,installed_energy_tons,e_nom_max_tons,capital_cost,marginal_cost,efficiency,electricity_mwh_per_t,h2_mwh_per_t_product,feedstock_t_per_t_product,standing_loss,available_from_year,earliest_commissioning_year,fixed_commissioning_year,commissioning_type,enabled,source_tech_count
-dac_taranaki,dac,taranaki,dac,,0.0,1000.0,,,150000.0,0.0,,1.0,,,,2030,2030,,flexible,True,1
-methanol_synthesis_taranaki,methanol_synthesis,taranaki,methanol_synthesis,methanol,0.0,1000.0,,,130000.0,0.0,,,6.25,1.375,,2030,2030,,flexible,True,1
-methanol_storage_taranaki,methanol_store,taranaki,methanol_storage,methanol,,,0.0,200000.0,60.0,0.0,,,,,0.0,2030,2030,,flexible,True,1
+asset_id,asset_type,zone,technology,cost_key,product,installed_capacity_mw,installed_energy_tons,p_nom_max_mw,e_nom_max_tons,efficiency,electricity_mwh_per_t,h2_mwh_per_t_product,feedstock_t_per_t_product,standing_loss,available_from_year,earliest_commissioning_year,fixed_commissioning_year,commissioning_type,enabled,source_tech_count,notes
+dac_taranaki,dac,taranaki,dac,dac,,0.0,,1000.0,,,1.0,,,,2030,2030,,flexible,True,1,
+methanol_synthesis_taranaki,methanol_synthesis,taranaki,methanol_synthesis,methanol_synthesis,methanol,0.0,,1000.0,,,,6.25,1.375,,2030,2030,,flexible,True,1,
+methanol_storage_taranaki,methanol_store,taranaki,methanol_storage,methanol_storage,methanol,,0.0,,200000.0,,,,,0.0,2030,2030,,flexible,True,1,

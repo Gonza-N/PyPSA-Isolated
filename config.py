@@ -2,6 +2,7 @@
 Generic PyPSA configuration and optimization module.
 
 Revision: optional CSV-driven hydro reservoirs and inflow profiles.
+Revision: generic generator availability factors and decommissioning precedence.
 
 This module is case-agnostic and uses CSV inputs for nodes, generators,
 interlinks, storage, and optional technology costs.
@@ -1964,6 +1965,30 @@ def _generator_asset_id(row: pd.Series, zone: str) -> str:
     return f"{_generator_asset_name(row)}_{zone}"
 
 
+def _generator_availability_factor(row: pd.Series, gen_id: str) -> float:
+    """Return a generic 0..1 availability derating for any generator asset.
+
+    ``availability_factor`` is intentionally separate from the resource profile:
+    - VRE: hourly resource profile × availability_factor
+    - hydro: hydro availability/inflow representation × availability_factor
+    - dispatchable generation: constant p_max_pu = availability_factor
+
+    Missing values default to 1.0 for backward compatibility.
+    """
+    if "availability_factor" not in row.index or pd.isna(row.get("availability_factor")):
+        return 1.0
+
+    value = _require_finite_float(
+        row.get("availability_factor"),
+        f"Generator {gen_id}.availability_factor",
+    )
+    if not 0.0 <= value <= 1.0:
+        raise ValueError(
+            f"Generator {gen_id}.availability_factor must be between 0 and 1. Got {value}."
+        )
+    return float(value)
+
+
 def _technology_profile_key(technology: str) -> Optional[str]:
     """Map technology labels to available VRE profile libraries."""
     tech = _normalize_label(technology)
@@ -1999,6 +2024,10 @@ def _is_hydro_technology(technology: str) -> bool:
 def _resolve_generator_commissioning(row: pd.Series, model_year: int) -> Tuple[bool, bool, str, Optional[int]]:
     """Resolve generator availability and expandability for a model year.
 
+    Decommissioning takes precedence over commissioning status. Therefore an
+    asset with ``decommissioning_year=2030`` is not added in 2030 or later,
+    even when it is otherwise labelled existing/fixed/flexible.
+
     Returns
     -------
     is_available : bool
@@ -2008,7 +2037,7 @@ def _resolve_generator_commissioning(row: pd.Series, model_year: int) -> Tuple[b
     status : str
         One of fixed, flexible, retired.
     relevant_year : int or None
-        Commissioning/availability year used for the decision.
+        Commissioning/decommissioning year used for the decision.
 
     Backward-compatible defaults:
     - fixed_commissioning_year or commissioning_type=fixed/existing/committed -> fixed capacity.
@@ -2019,6 +2048,7 @@ def _resolve_generator_commissioning(row: pd.Series, model_year: int) -> Tuple[b
     available_year = _safe_year(row.get("available_from_year", np.nan))
     earliest_year = _safe_year(row.get("earliest_commissioning_year", np.nan))
     fixed_year = _safe_year(row.get("fixed_commissioning_year", np.nan))
+    decommissioning_year = _safe_year(row.get("decommissioning_year", np.nan))
 
     candidate_year = earliest_year if earliest_year is not None else available_year
 
@@ -2027,7 +2057,12 @@ def _resolve_generator_commissioning(row: pd.Series, model_year: int) -> Tuple[b
     retired_aliases = {"retired", "disabled", "excluded", "inactive"}
 
     if raw_type in retired_aliases:
-        return False, False, "retired", None
+        return False, False, "retired", decommissioning_year
+
+    # Retirement must be checked before fixed/flexible commissioning branches.
+    # Otherwise almost every EDGS row returns early and decommissioning is ignored.
+    if decommissioning_year is not None and model_year >= decommissioning_year:
+        return False, False, "retired", decommissioning_year
 
     if raw_type in fixed_aliases or fixed_year is not None:
         year_available = fixed_year if fixed_year is not None else candidate_year
@@ -2038,11 +2073,6 @@ def _resolve_generator_commissioning(row: pd.Series, model_year: int) -> Tuple[b
     if raw_type in flexible_aliases or candidate_year is not None:
         year_available = candidate_year if candidate_year is not None else model_year
         return model_year >= year_available, model_year >= year_available, "flexible", year_available
-
-    decommissioning_year = _safe_year(row.get("decommissioning_year", np.nan))
-
-    if decommissioning_year is not None and model_year >= decommissioning_year:
-        return False, False, "retired", decommissioning_year
 
     # Legacy fallback: a row with no commissioning metadata is treated as existing/fixed.
     return True, False, "fixed", model_year
@@ -2137,6 +2167,7 @@ def _add_csv_driven_hydro_asset(
     capital_cost: float,
     marginal_cost: float,
     efficiency: float,
+    availability_factor: float,
     commissioning_status: str,
     commissioning_year: Optional[int],
 ) -> None:
@@ -2211,6 +2242,7 @@ def _add_csv_driven_hydro_asset(
             p_nom_max=float(p_nom),
             p_nom_extendable=False,
             p_min_pu=0.0,
+            p_max_pu=float(availability_factor),
             max_hours=float(max_hours),
             state_of_charge_initial=float(initial_soc_pu * energy_capacity_mwh),
             cyclic_state_of_charge=False,
@@ -2246,11 +2278,14 @@ def _add_csv_driven_hydro_asset(
     }
 
     if model_type == "inflow_generator":
-        attrs["p_max_pu"] = (
-            np.clip(profile.to_numpy() / float(p_nom), 0.0, 1.0) if p_nom > 0 else np.zeros(len(snapshots), dtype=float)
+        base_profile = (
+            np.clip(profile.to_numpy() / float(p_nom), 0.0, 1.0)
+            if p_nom > 0
+            else np.zeros(len(snapshots), dtype=float)
         )
+        attrs["p_max_pu"] = np.clip(base_profile * availability_factor, 0.0, 1.0)
     elif model_type == "availability_generator":
-        attrs["p_max_pu"] = np.clip(profile.to_numpy(), 0.0, 1.0)
+        attrs["p_max_pu"] = np.clip(profile.to_numpy() * availability_factor, 0.0, 1.0)
     else:
         raise ValueError(f"Unsupported hydro model_type '{model_type}' for {gen_id}.")
 
@@ -2812,20 +2847,29 @@ def build_case_network(
             marginal_cost = _require_row_float(row, "marginal_cost", f"Generator {gen_id}")
             efficiency = _require_row_float(row, "efficiency", f"Generator {gen_id}")
             p_min_mw = _safe_float(row.get("p_min_mw", 0), 0.0)
+            availability_factor = _generator_availability_factor(row, gen_id)
+
+            # Hydro resource/dispatch representation is separate from the generic
+            # availability derating. A hydro capacity factor is only required for
+            # legacy hydro rows without an explicit hydro_assets.csv definition.
+            hydro_config = hydro_asset_lookup.get(gen_id)
             hydro_cf = np.nan
-            if _is_hydro_technology(technology):
+            if _is_hydro_technology(technology) and hydro_config is None:
                 if "capacity_factor" in row.index and not pd.isna(row.get("capacity_factor")):
-                    hydro_cf = _require_finite_float(row.get("capacity_factor"), f"Generator {gen_id}.capacity_factor")
-                elif "availability_factor" in row.index and not pd.isna(row.get("availability_factor")):
                     hydro_cf = _require_finite_float(
-                        row.get("availability_factor"), f"Generator {gen_id}.availability_factor"
+                        row.get("capacity_factor"),
+                        f"Generator {gen_id}.capacity_factor",
                     )
                 elif hydro_capacity_factor is not None:
                     hydro_cf = hydro_capacity_factor
                 else:
                     raise ValueError(
-                        f"Hydro generator {gen_id} requires capacity_factor or availability_factor "
-                        "in generators_capacity.csv, or hydro_capacity_factor in general.csv."
+                        f"Hydro generator {gen_id} requires capacity_factor in generators_capacity.csv, "
+                        "hydro_capacity_factor in general.csv, or an explicit hydro_assets.csv definition."
+                    )
+                if not 0.0 <= hydro_cf <= 1.0:
+                    raise ValueError(
+                        f"Generator {gen_id}.capacity_factor must be between 0 and 1. Got {hydro_cf}."
                     )
 
             is_available, expansion_allowed, commissioning_status, commissioning_year = (
@@ -2865,7 +2909,6 @@ def build_case_network(
                 p_nom_max = fixed_cap
                 p_nom = fixed_cap
 
-            hydro_config = hydro_asset_lookup.get(gen_id)
             if hydro_config is not None:
                 _add_csv_driven_hydro_asset(
                     n=n,
@@ -2883,6 +2926,7 @@ def build_case_network(
                     capital_cost=capital_cost,
                     marginal_cost=marginal_cost,
                     efficiency=efficiency,
+                    availability_factor=availability_factor,
                     commissioning_status=commissioning_status,
                     commissioning_year=commissioning_year,
                 )
@@ -2918,14 +2962,23 @@ def build_case_network(
                 and profile_key in vre_profiles
                 and zone in vre_profiles[profile_key].columns
             ):
-                attrs["p_max_pu"] = vre_profiles[profile_key][zone].values
+                resource_profile = np.asarray(vre_profiles[profile_key][zone].values, dtype=float)
+                attrs["p_max_pu"] = np.clip(resource_profile * availability_factor, 0.0, 1.0)
             elif profile_key is not None:
                 print(
                     f"Warning: {gen_id} has technology='{technology}' but no {profile_key} "
-                    f"profile was found for zone='{zone}'. It will be treated as dispatchable."
+                    f"profile was found for zone='{zone}'. It will be treated as dispatchable "
+                    f"up to availability_factor={availability_factor:.3f}."
                 )
+                attrs["p_max_pu"] = np.full(len(snapshots), availability_factor)
             elif _is_hydro_technology(technology):
-                attrs["p_max_pu"] = np.full(len(snapshots), hydro_cf)
+                attrs["p_max_pu"] = np.full(
+                    len(snapshots),
+                    float(np.clip(hydro_cf * availability_factor, 0.0, 1.0)),
+                )
+            else:
+                # Generic derating for geothermal and all other dispatchable generators.
+                attrs["p_max_pu"] = np.full(len(snapshots), availability_factor)
 
             n.add("Generator", gen_id, **attrs)
     else:

@@ -1,8 +1,8 @@
-asset_id,asset_type,zone,technology,installed_capacity_mw,installed_energy_mwh,p_nom_max_mw,e_nom_max_mwh,capital_cost,marginal_cost,efficiency,standing_loss,available_from_year,earliest_commissioning_year,fixed_commissioning_year,commissioning_type,enabled,source_tech_count,continuous_operation,injection_season_start,injection_season_days,withdrawal_season_start,withdrawal_season_days
-h2_electrolyzer_taranaki,electrolyzer,taranaki,electrolyzer,0.0,,,,90000,0.0,0.7,,2030,2030,,flexible,True,1,,,,,
-h2_surface_buffer_taranaki,h2_store_tank,taranaki,hydrogen_storage,,0.0,,,2500,0.0,,0.0005,2030,2030,,flexible,False,1,,,,,
-h2_fuel_cell_taranaki,h2_fuel_cell,taranaki,h2_fuel_cell,0.0,,,,100000,0.0,0.55,,2030,2030,,flexible,True,1,,,,,
-h2_turbine_taranaki,h2_turbine,taranaki,h2_turbine,0.0,,,,85000,0.0,0.45,,2030,2030,,flexible,True,1,,,,,
-uhs_injection_taranaki,dgr_injection,taranaki,uhs_injection,0.0,,,,20000,0.01,0.98,,2030,2030,,flexible,True,1,1.0,274.0,212.0,121.0,153.0
-uhs_withdrawal_taranaki,dgr_withdrawal,taranaki,uhs_withdrawal,0.0,,,,25000,0.01,0.98,,2030,2030,,flexible,True,1,1.0,274.0,212.0,121.0,153.0
-uhs_store_taranaki,dgr_store,taranaki,uhs_storage,,0.0,,,1200,0.0,,0.0001,2030,2030,,flexible,True,1,,,,,
+asset_id,asset_type,zone,technology,cost_key,installed_capacity_mw,installed_energy_mwh,p_nom_max_mw,e_nom_max_mwh,efficiency,standing_loss,available_from_year,earliest_commissioning_year,fixed_commissioning_year,commissioning_type,enabled,initial_inventory_fraction,final_inventory_fraction,cyclic_inventory,source_tech_count,continuous_operation,injection_season_start,injection_season_days,withdrawal_season_start,withdrawal_season_days
+h2_electrolyzer_taranaki,electrolyzer,taranaki,electrolyzer,electrolyzer,0.0,,,,0.7,,2030,2030,,flexible,True,,,,1,,,,,
+h2_surface_buffer_taranaki,h2_store_tank,taranaki,hydrogen_storage,h2_tank,,0.0,,,,0.0005,2030,2030,,flexible,False,,,,1,,,,,
+h2_fuel_cell_taranaki,h2_fuel_cell,taranaki,h2_fuel_cell,h2_fuel_cell,0.0,,,,0.55,,2030,2030,,flexible,True,,,,1,,,,,
+h2_turbine_taranaki,h2_turbine,taranaki,h2_turbine,h2_turbine,0.0,,,,0.45,,2030,2030,,flexible,True,,,,1,,,,,
+uhs_injection_taranaki,dgr_injection,taranaki,uhs_injection,uhs_injection,0.0,,,,0.98,,2030,2030,,flexible,True,,,,1,1.0,274.0,212.0,121.0,153.0
+uhs_withdrawal_taranaki,dgr_withdrawal,taranaki,uhs_withdrawal,uhs_withdrawal,0.0,,,,0.98,,2030,2030,,flexible,True,,,,1,1.0,274.0,212.0,121.0,153.0
+uhs_store_taranaki,dgr_store,taranaki,uhs_storage,uhs_storage,,0.0,,,,0.0001,2030,2030,,flexible,True,,,,1,,,,,

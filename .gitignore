@@ -19,7 +19,10 @@ data_NZ/
 data/magallanes_2016.zip
 data_NZ_generation.zip
 data_punta_arenas/
+data_nz_generation/outputs/
 
 # Legacy explicit ignore kept for compatibility
 punta_arenas_2019.nc
 data/respaldo_nc/
+data_nz_generation/old/
+respaldos/
