@@ -1,0 +1,17 @@
+asset_id,asset_type,zone,technology,cost_key,input_carrier,end_use,installed_capacity_mw,max_capacity_mw,capacity_basis,commissioning_type,available_from_year,enabled
+gas_boiler_space_pa,conversion,punta_arenas_centro,gas_boiler,gas_boiler_existing,natural_gas,space_heat,16.8,16.8,output,fixed,2025,True
+gas_water_heater_pa,conversion,punta_arenas_centro,gas_water_heater,gas_water_heater_existing,natural_gas,hot_water,8.4,8.4,output,fixed,2025,True
+gas_cooktop_pa,conversion,punta_arenas_centro,gas_cooktop,gas_cooktop_existing,natural_gas,cooking,2.8,2.8,output,fixed,2025,True
+heat_pump_space_pa,conversion,punta_arenas_centro,heat_pump,heat_pump,electricity,space_heat,0.0,100.0,output,flexible,2030,True
+heat_pump_water_pa,conversion,punta_arenas_centro,heat_pump_water_heater,heat_pump_water_heater,electricity,hot_water,0.0,40.0,output,flexible,2030,True
+electric_boiler_space_pa,conversion,punta_arenas_centro,electric_boiler,electric_boiler,electricity,space_heat,0.0,100.0,output,flexible,2030,True
+electric_water_heater_pa,conversion,punta_arenas_centro,electric_water_heater,electric_boiler,electricity,hot_water,0.0,50.0,output,flexible,2030,True
+induction_cooktop_pa,conversion,punta_arenas_centro,induction_cooktop,induction_cooktop,electricity,cooking,0.0,30.0,output,flexible,2030,False
+biogas_boiler_space_pa,conversion,punta_arenas_centro,biogas_boiler,gas_boiler,biogas,space_heat,0.0,60.0,output,flexible,2030,True
+biogas_water_heater_pa,conversion,punta_arenas_centro,biogas_water_heater,biogas_water_heater,biogas,hot_water,0.0,30.0,output,flexible,2030,False
+biogas_cooktop_pa,conversion,punta_arenas_centro,biogas_cooktop,biogas_cooktop,biogas,cooking,0.0,20.0,output,flexible,2030,False
+pellet_boiler_space_pa,conversion,punta_arenas_centro,pellet_boiler,pellet_boiler,pellets,space_heat,0.0,60.0,output,flexible,2030,True
+district_heating_space_pa,conversion,punta_arenas_centro,district_heating_supply,district_heating_supply,district_heat,space_heat,0.0,100.0,output,flexible,2030,False
+district_heating_water_pa,conversion,punta_arenas_centro,district_heating_supply,district_heating_supply,district_heat,hot_water,0.0,40.0,output,flexible,2030,False
+solar_thermal_water_pa,conversion,punta_arenas_centro,solar_thermal,solar_thermal,solar_energy,hot_water,0.0,30.0,output,flexible,2030,False
+wood_chip_boiler_space_pa,conversion,punta_arenas_centro,wood_chip_boiler,wood_chip_boiler,wood_chips,space_heat,0.0,60.0,output,flexible,2030,False

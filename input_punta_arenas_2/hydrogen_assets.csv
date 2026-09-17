@@ -1,0 +1,12 @@
+asset_id,asset_type,zone,technology,cost_key,installed_capacity_mw,installed_energy_mwh,p_nom_max_mw,e_nom_max_mwh,efficiency,standing_loss,available_from_year,earliest_commissioning_year,fixed_commissioning_year,commissioning_type,enabled,initial_inventory_fraction,final_inventory_fraction,cyclic_inventory,source_tech_count,continuous_operation,injection_season_start,injection_season_days,withdrawal_season_start,withdrawal_season_days
+h2_electrolyzer_cabo_negro,electrolyzer,cabo_negro,electrolyzer,electrolyzer,0,,1000,,0.7,,2030,2030,,flexible,TRUE,,,,1,,,,,
+h2_surface_buffer_cabo_negro,h2_store_tank,cabo_negro,hydrogen_storage,h2_tank,,0,,10000,,0.0005,2030,2030,,flexible,TRUE,,,TRUE,1,,,,,
+h2_fuel_cell_cabo_negro,h2_fuel_cell,cabo_negro,h2_fuel_cell,h2_fuel_cell,0,,1000,,0.55,,2030,2030,,flexible,TRUE,,,,1,,,,,
+h2_turbine_cabo_negro,h2_turbine,cabo_negro,h2_turbine,h2_turbine,0,,1000,,0.45,,2030,2030,,flexible,FALSE,,,,1,,,,,
+uhs_injection_cabo_negro,dgr_injection,cabo_negro,uhs_injection,uhs_injection,0,,1000,,0.98,,2030,2030,,flexible,FALSE,,,,1,1,274,212,121,153
+uhs_withdrawal_cabo_negro,dgr_withdrawal,cabo_negro,uhs_withdrawal,uhs_withdrawal,0,,1000,,0.98,,2030,2030,,flexible,FALSE,,,,1,1,274,212,121,153
+uhs_store_cabo_negro,dgr_store,cabo_negro,uhs_storage,uhs_storage,,0,,300000,,0.0001,2030,2030,,flexible,FALSE,0.8,0.8,FALSE,1,,,,,
+h2_electrolyzer_puerto_tranquilo_sur,electrolyzer,puerto_tranquilo_sur,electrolyzer,electrolyzer,0,,1000,,0.7,,2030,2030,,flexible,FALSE,,,,1,,,,,
+h2_surface_buffer_puerto_tranquilo_sur,h2_store_tank,puerto_tranquilo_sur,hydrogen_storage,h2_tank,,0,,10000,,0.0005,2030,2030,,flexible,FALSE,,,TRUE,1,,,,,
+h2_fuel_cell_puerto_tranquilo_sur,h2_fuel_cell,puerto_tranquilo_sur,h2_fuel_cell,h2_fuel_cell,0,,1000,,0.55,,2030,2030,,flexible,FALSE,,,,1,,,,,
+h2_turbine_puerto_tranquilo_sur,h2_turbine,puerto_tranquilo_sur,h2_turbine,h2_turbine,0,,1000,,0.45,,2030,2030,,flexible,FALSE,,,,1,,,,,

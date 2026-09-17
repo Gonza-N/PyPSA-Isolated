@@ -1,0 +1,4 @@
+parameter,value,unit,enabled
+# parameter[name],value[number/text],unit[text],enabled[bool]
+slack_cost_per_mwh,100000,USD/MWh,TRUE
+ptx_shortfall_cost_per_ton,1000000,USD/ton,TRUE

@@ -1,0 +1,30 @@
+Reviewed run-ready file set (2026-09-16)
+
+Files intended for input_punta_arenas_2:
+- nodes.csv
+- general.csv
+- costs.csv
+- heat_assets.csv
+- demand_profiles.csv  [user will merge electricity + heat end uses]
+
+Root files:
+- config.py
+- case_analysis_PuntaArenas_heat_subsidy_v2.ipynb
+
+Preferred demand_profiles.csv demand_type values:
+- electricity
+- space_heat
+- hot_water
+- cooking
+
+The config keeps legacy demand_type=heat as a fallback and applies the 60/30/10
+shares only in that legacy case. Explicit end-use profiles are never split again.
+
+Heat-assets choices kept active for the run-ready set:
+- Existing: natural-gas space heating, hot water, cooking
+- Candidates: heat pumps (space + water), electric resistance (space + water),
+  biogas boiler for space heating, pellet boiler for space heating
+- Retained but disabled pending stronger cost/supply references: induction cooking,
+  biogas hot water/cooking, district heating, solar thermal, wood-chip boiler
+
+Important: config.py uses the standard filename costs.csv (plural).

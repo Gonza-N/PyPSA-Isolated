@@ -1,0 +1,7 @@
+asset_id,asset_type,zone,technology,cost_key,product,installed_capacity_mw,installed_energy_tons,p_nom_max_mw,e_nom_max_tons,efficiency,electricity_mwh_per_t,h2_mwh_per_t_product,feedstock_t_per_t_product,standing_loss,available_from_year,earliest_commissioning_year,fixed_commissioning_year,commissioning_type,enabled,notes
+asu_punta_arenas_2,asu,cabo_negro,asu,asu,,0,,1000,,,0.2,,,,2030,2030,,flexible,TRUE,ASU/N2 production. Capacity is MW_e input; electricity_mwh_per_t is MWh_e per tonne N2.
+dac_punta_arenas_2,dac,cabo_negro,dac,dac,,0,,1000,,,1,,,,2030,2030,,flexible,TRUE,DAC/CO2 supply. Capacity is MW_e input; electricity_mwh_per_t is MWh_e per tonne CO2.
+ammonia_synthesis_punta_arenas_2,ammonia_synthesis,cabo_negro,ammonia_synthesis,ammonia_synthesis,ammonia,0,,1000,,,,5.9,0.824,,2030,2030,,flexible,TRUE,Haber-Bosch proxy. Capacity is MW_H2 input; output is tonne NH3/h.
+methanol_synthesis_punta_arenas_2,methanol_synthesis,cabo_negro,methanol_synthesis,methanol_synthesis,methanol,0,,1000,,,,6.25,1.375,,2030,2030,,flexible,TRUE,CO2 hydrogenation to methanol proxy. Capacity is MW_H2 input; output is tonne CH3OH/h.
+ammonia_storage_punta_arenas_2,ammonia_store,cabo_negro,ammonia_storage,ammonia_storage,ammonia,,0,,200000,,,,,0,2030,2030,,flexible,TRUE,Product storage in tonnes NH3.
+methanol_storage_punta_arenas_2,methanol_store,cabo_negro,methanol_storage,methanol_storage,methanol,,0,,200000,,,,,0,2030,2030,,flexible,TRUE,Product storage in tonnes CH3OH.

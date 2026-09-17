@@ -1,0 +1,3 @@
+asset_id,from_zone,to_zone,capacity_mw,loss_fraction,enabled,expandable,discrete_expansion,module_capacity_mw,min_modules,max_modules,capital_cost,marginal_cost,bidirectional
+tx_punta_arenas_centro_cabo_negro,punta_arenas_centro,cabo_negro,0,0.02,FALSE,TRUE,TRUE,50,0,10,80000,0,TRUE
+tx_punta_arenas_centro_puerto_tranquilo_sur,punta_arenas_centro,puerto_tranquilo_sur,0,0.02,FALSE,TRUE,TRUE,50,0,10,80000,0,TRUE

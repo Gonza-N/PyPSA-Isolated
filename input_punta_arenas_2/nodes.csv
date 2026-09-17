@@ -1,0 +1,5 @@
+zone,annual_mean_mw,annual_heat_mean_mw,lat,lon,enabled
+# zone[name],annual_mean_mw[MW],annual_heat_mean_mw[MW],lat[degrees],lon[degrees],enabled[bool]
+punta_arenas_centro,38,20,-53.163,-70.917,TRUE
+cabo_negro,0,0,-52.966,-70.829,FALSE
+puerto_tranquilo_sur,0,0,-53.36,-70.98,FALSE

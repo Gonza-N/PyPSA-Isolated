@@ -1,0 +1,9 @@
+asset_id,generator,zone,technology,cost_key,installed_capacity,p_min_mw,available_from_year,earliest_commissioning_year,fixed_commissioning_year,commissioning_type,enabled,source_tech_count
+# asset_id[id],generator[name],zone[name],technology[name],cost_key[costs.csv key],installed_capacity[MW],p_min_mw[MW],available_from_year[year],earliest_commissioning_year[year],fixed_commissioning_year[year],commissioning_type[fixed|flexible],enabled[TRUE|FALSE],source_tech_count[count]
+wind_existing_cabo_negro,wind_existing,cabo_negro,wind,wind_existing,2.55,0,2025,2025,2025,fixed,TRUE,1
+wind_flexible_cabo_negro,wind_flexible,cabo_negro,wind,wind_new,2500,0,2030,2030,,flexible,TRUE,1
+solar_utility_flexible_cabo_negro,solar_utility_flexible,cabo_negro,solar,solar_utility_new,1500,0,2030,2030,,flexible,TRUE,1
+pv_residential_flexible_punta_arenas_centro,pv_residential_flexible,punta_arenas_centro,solar,solar_residential_new,1000,0,2030,2030,,flexible,TRUE,1
+ocgt_existing_punta_arenas_centro,ocgt_existing,punta_arenas_centro,ocgt,ocgt_existing,80,0,2025,2025,2025,fixed,TRUE,1
+wind_flexible_puerto_tranquilo_sur,wind_flexible,puerto_tranquilo_sur,wind,wind_new,2500,0,2030,2030,,flexible,TRUE,1
+solar_utility_flexible_puerto_tranquilo_sur,solar_utility_flexible,puerto_tranquilo_sur,solar,solar_utility_new,1500,0,2030,2030,,flexible,TRUE,1

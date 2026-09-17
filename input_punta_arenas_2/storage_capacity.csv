@@ -1,0 +1,13 @@
+asset_id,storage,zone,technology,cost_key,installed_power_mw,p_nom_max_mw,max_hours,efficiency_store,efficiency_dispatch,standing_loss,available_from_year,earliest_commissioning_year,fixed_commissioning_year,commissioning_type,enabled,source_tech_count,initial_soc_fraction,final_soc_fraction,cyclic_state_of_charge
+bess_2h_cabo_negro,bess_2h,punta_arenas_centro,bess,bess_2h,0,500,2,0.95,0.95,0.001,2030,2030,,flexible,TRUE,1,0.5,0.5,FALSE
+bess_4h_cabo_negro,bess_4h,punta_arenas_centro,bess,bess_4h,0,1500,4,0.95,0.95,0.001,2030,2030,,flexible,TRUE,1,0.5,0.5,FALSE
+bess_6h_cabo_negro,bess_6h,punta_arenas_centro,bess,bess_6h,0,750,6,0.95,0.95,0.001,2030,2030,,flexible,FALSE,1,0.5,0.5,FALSE
+bess_8h_cabo_negro,bess_8h,punta_arenas_centro,bess,bess_8h,0,750,8,0.95,0.95,0.001,2030,2030,,flexible,FALSE,1,0.5,0.5,FALSE
+bess_2h_cabo_negro,bess_2h,cabo_negro,bess,bess_2h,0,500,2,0.95,0.95,0.001,2030,2030,,flexible,FALSE,1,0.5,0.5,FALSE
+bess_4h_cabo_negro,bess_4h,cabo_negro,bess,bess_4h,0,1500,4,0.95,0.95,0.001,2030,2030,,flexible,FALSE,1,0.5,0.5,FALSE
+bess_6h_cabo_negro,bess_6h,cabo_negro,bess,bess_6h,0,750,6,0.95,0.95,0.001,2030,2030,,flexible,FALSE,1,0.5,0.5,FALSE
+bess_8h_cabo_negro,bess_8h,cabo_negro,bess,bess_8h,0,750,8,0.95,0.95,0.001,2030,2030,,flexible,FALSE,1,0.5,0.5,FALSE
+bess_2h_puerto_tranquilo_sur,bess_2h,puerto_tranquilo_sur,bess,bess_2h,0,500,2,0.95,0.95,0.001,2030,2030,,flexible,FALSE,1,0.5,0.5,FALSE
+bess_4h_puerto_tranquilo_sur,bess_4h,puerto_tranquilo_sur,bess,bess_4h,0,1500,4,0.95,0.95,0.001,2030,2030,,flexible,FALSE,1,0.5,0.5,FALSE
+bess_6h_puerto_tranquilo_sur,bess_6h,puerto_tranquilo_sur,bess,bess_6h,0,750,6,0.95,0.95,0.001,2030,2030,,flexible,FALSE,1,0.5,0.5,FALSE
+bess_8h_puerto_tranquilo_sur,bess_8h,puerto_tranquilo_sur,bess,bess_8h,0,750,8,0.95,0.95,0.001,2030,2030,,flexible,FALSE,1,0.5,0.5,FALSE
