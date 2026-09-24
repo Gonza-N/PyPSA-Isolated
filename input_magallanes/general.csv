@@ -1,9 +1,11 @@
-parameter,value,unit,enabled,description,source
-slack_cost_per_mwh,100000,USD/MWh,TRUE,Penalty for unserved electricity demand,PyPSA-Isolated modelling assumption
-currency,USD,,TRUE,Model reporting currency,Case convention
-currency_year,2025,year,TRUE,Reference currency year,Case convention
-demand_reference_year,2025,year,TRUE,Base year for the four medium-system demand forecasts,CNE Table 6.2
-total_annual_demand_2025_mwh,433856,MWh/year,TRUE,"Sum of Punta Arenas, Puerto Natales, Porvenir, and Puerto Williams",CNE Table 6.2
-h2_lhv_mwh_per_ton,33.33,MWh/tH2,TRUE,Hydrogen lower heating value used for reporting,Standard conversion
-enable_ptx,FALSE,boolean,TRUE,Power-to-X export chains are excluded,Case definition
-enable_uhs,FALSE,boolean,TRUE,Underground hydrogen storage is excluded,Case definition
+parameter,value,unit,enabled,description,source,notes
+slack_cost_per_mwh,100000,USD/MWh,TRUE,Penalty for unserved electricity demand,Decision metodologica acordada con Vicente,Cambio: penalización ENS de 100.000 USD/MWh; decisión numérica distinta del costo de falla CNE.
+currency,USD,,TRUE,Model reporting currency,Case convention,
+currency_year,2025,year,TRUE,Ano monetario OBJETIVO; no certifica normalizacion completa. Ver monetary_status en costs.csv.,Decisión metodológica del modelo: USD reales de 2025; no certificacion de las fuentes,Cambio: 2025 es la meta monetaria del modelo y no certifica la normalización de cada fuente.
+demand_reference_year,2025,year,TRUE,Base year for the four medium-system demand forecasts,CNE Table 6.2,
+total_annual_demand_2025_mwh,433856,MWh/year,TRUE,"Sum of Punta Arenas, Puerto Natales, Porvenir, and Puerto Williams",CNE Table 6.2,
+h2_lhv_mwh_per_ton,33.33,MWh/tH2,TRUE,Hydrogen lower heating value used for reporting,Standard conversion,
+enable_ptx,FALSE,boolean,TRUE,Power-to-X export chains are excluded,Case definition,
+enable_uhs,FALSE,boolean,TRUE,Underground hydrogen storage is excluded,Case definition,
+cost_normalization_complete,FALSE,boolean,TRUE,Metadato informativo: quedan costos provisionales. No altera ecuaciones.,Auditoria de costos y decisión metodológica,"Cambio: normalización incompleta; quedan pendientes bases CNE, trayectorias, térmicas, H2 y transmisión."
+enable_capacity_cohorts,TRUE,boolean,TRUE,Retiros por vida de ampliaciones identificadas en optimizacion secuencial; flota inicial sin edades conocidas conserva alcance previo.,Decision metodologica de continuidad secuencial,Cambio: cohortes activas para ampliaciones con año identificable; edades de la flota inicial pendientes.

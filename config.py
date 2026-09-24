@@ -1192,7 +1192,15 @@ def _project_costs_for_year(costs_df: Optional[pd.DataFrame], year: Optional[int
                 )
 
             crf = (1.0 / n_years) if r == 0 else r * (1.0 + r) ** n_years / ((1.0 + r) ** n_years - 1.0)
-            out.at[idx, "capital_cost"] = capex * (crf + fom)
+            # Cambio: permite O&M fijo absoluto independiente de la inversión hundida.
+            # Se suma una sola vez y usa la misma base nominal que el CAPEX.
+            raw_absolute = row.get("fom_absolute", np.nan)
+            absolute_fom = 0.0 if pd.isna(raw_absolute) else _require_finite_float(
+                raw_absolute, f"costs.csv[{row.get('cost_key')}].fom_absolute"
+            )
+            if absolute_fom < 0:
+                raise ValueError("fom_absolute no puede ser negativo.")
+            out.at[idx, "capital_cost"] = capex * (crf + fom) + absolute_fom
 
     return out
 
@@ -2282,6 +2290,177 @@ def _previous_store_energy_capacity(previous_year_network, asset_id: str, defaul
         return float(table.loc[asset_id, "e_nom_opt"])
 
     return float(table.loc[asset_id, "e_nom"])
+
+
+
+# Cambio: registra por cohorte sólo las ampliaciones con año de inversión identificable.
+# La flota inicial conserva su tratamiento porque no hay edades documentadas.
+def _prepare_capacity_cohorts(n, previous, costs, asset_tables, model_year):
+    previous_meta = (getattr(previous, "meta", {}) or {}) if previous is not None else {}
+    old = previous_meta.get("capacity_cohorts", {})
+    records = [dict(row) for row in old.get("records", [])]
+    if previous is not None and old and (
+        not old.get("finalized") or int(old["model_year"]) >= int(model_year)
+    ):
+        raise ValueError("Cohort continuity requires a finalized earlier model year.")
+    cost_lookup = costs.set_index("cost_key")
+    specifications = []
+    for assets in asset_tables:
+        if assets is None or assets.empty:
+            continue
+        for _, asset in assets.iterrows():
+            asset_id = str(asset["asset_id"])
+            for component, nominal in (
+                ("generators", "p_nom"), ("storage_units", "p_nom"),
+                ("links", "p_nom"), ("stores", "e_nom"),
+            ):
+                table = getattr(n, component)
+                if asset_id not in table.index or not bool(table.at[asset_id, nominal + "_extendable"]):
+                    continue
+                key = str(asset["cost_key"])
+                lifetime = float(cost_lookup.at[key, "lifetime_years"])
+                if not np.isfinite(lifetime) or lifetime <= 0:
+                    raise ValueError(f"Missing technical lifetime for {asset_id}")
+                ledger = [r for r in records if r["component"] == component and r["asset"] == asset_id]
+                if previous is not None and asset_id in getattr(previous, component).index:
+                    old_table = getattr(previous, component)
+                    actual = float(old_table.at[asset_id, nominal + "_opt"])
+                    if not old and actual > 1e-6:
+                        raise ValueError(f"Cannot date inherited capacity without cohort ledger: {asset_id}")
+                    if old:
+                        old_year = int(old["model_year"])
+                        recorded = sum(r["capacity"] for r in ledger
+                                       if r["build_year"] <= old_year < r["build_year"] + r["lifetime_years"])
+                        if not np.isclose(actual, recorded, atol=1e-5, rtol=1e-7):
+                            raise ValueError(f"Capacity and cohort ledger disagree: {asset_id}")
+                elif float(table.at[asset_id, nominal]) > 1e-6:
+                    raise ValueError(f"Initial expandable capacity needs documented commissioning cohorts: {asset_id}")
+                survivors = sum(r["capacity"] for r in ledger
+                                if r["build_year"] <= model_year < r["build_year"] + r["lifetime_years"])
+                table.at[asset_id, nominal] = survivors
+                table.at[asset_id, nominal + "_min"] = survivors
+                specifications.append(dict(component=component, asset=asset_id, nominal=nominal,
+                                           cost_key=key, lifetime_years=lifetime, inherited_capacity=survivors))
+    n.meta["capacity_cohorts"] = dict(
+        version=1, model_year=int(model_year), finalized=False,
+        records=records, specifications=specifications,
+        accounting_basis="annualized_cost_at_model_year; not historical cash flow",
+        initial_fleet_lifetime_status="unknown; existing fixed fleet unchanged",
+    )
+
+
+def finalize_capacity_cohorts(n):
+    """Record additions only after a solved sequential year; idempotent for exports."""
+    ledger = (getattr(n, "meta", {}) or {}).get("capacity_cohorts")
+    if not ledger or ledger.get("finalized"):
+        return
+    records = [dict(r) for r in ledger["records"]]
+    for spec in ledger["specifications"]:
+        table = getattr(n, spec["component"])
+        capacity = float(table.at[spec["asset"], spec["nominal"] + "_opt"])
+        addition = capacity - spec["inherited_capacity"]
+        if not np.isfinite(capacity) or addition < -1e-5:
+            raise ValueError(f"Invalid solved capacity for cohort {spec['asset']}")
+        if addition > 1e-6:
+            records.append(dict(
+                component=spec["component"], asset=spec["asset"], cost_key=spec["cost_key"],
+                capacity=addition, build_year=ledger["model_year"],
+                lifetime_years=spec["lifetime_years"],
+            ))
+    ledger["records"] = records
+    ledger["finalized"] = True
+
+
+# Cambio: usa una sola base contable para redes en memoria y resultados exportados.
+# Incluye anualidades fijas y la constante heredada que no aparecen en el objetivo.
+def _cost_frame(value):
+    return value.load() if hasattr(value, "load") and not isinstance(value, pd.DataFrame) else value
+
+
+def annual_cost_accounting(net, *, validate=True):
+    """Annualized model cost, including fixed assets and ENS, without inflation claims."""
+    weights = _cost_frame(net.snapshot_weightings)["objective"]
+    rows = []
+    inferred_constant = 0.0
+    for component, label, nominal, dispatch in (
+        ("generators", "Generator", "p_nom", "p"),
+        ("storage_units", "StorageUnit", "p_nom", "p_dispatch"),
+        ("links", "Link", "p_nom", "p0"),
+        ("stores", "Store", "e_nom", "p"),
+        ("lines", "Line", "s_nom", None),
+    ):
+        table = _cost_frame(getattr(net, component, pd.DataFrame()))
+        if table is None or table.empty:
+            continue
+        cc = table.get("capital_cost", pd.Series(0.0, index=table.index)).fillna(0.0)
+        capacity = table.get(nominal + "_opt", table[nominal]).fillna(table[nominal])
+        extendable = table[nominal + "_extendable"].astype(str).str.lower().isin(["true", "1"])
+        inferred_constant += float((table.loc[extendable, nominal] * cc[extendable]).sum())
+        marginal = table.get("marginal_cost", pd.Series(0.0, index=table.index)).fillna(0.0)
+        variable = pd.Series(0.0, index=table.index)
+        temporal = getattr(net, component + "_t", None)
+        dynamic_mc = _cost_frame(getattr(temporal, "marginal_cost", pd.DataFrame()))
+        has_dynamic_cost = dynamic_mc is not None and not dynamic_mc.empty
+        if dispatch is not None and ((marginal != 0).any() or has_dynamic_cost):
+            power = _cost_frame(getattr(temporal, dispatch, None))
+            if power is None:
+                raise ValueError(f"Missing {component}.{dispatch} for variable-cost reconciliation")
+            # Use dispatch, not net BESS output; Store dispatch may be signed.
+            power = power.reindex(index=weights.index, columns=table.index, fill_value=0.0)
+            mc = pd.DataFrame(np.tile(marginal.to_numpy(), (len(weights), 1)),
+                              index=weights.index, columns=table.index)
+            if dynamic_mc is not None and not dynamic_mc.empty:
+                mc.update(dynamic_mc)
+            variable = power.mul(mc).mul(weights, axis=0).sum()
+        for asset in table.index:
+            carrier = str(table.at[asset, "carrier"])
+            is_ens = component == "generators" and carrier == "slack"
+            rows.append(dict(
+                component=label, carrier=carrier, asset=asset,
+                capital_cost=float(capacity[asset] * cc[asset]),
+                variable_cost=float(variable[asset]),
+                fixed_asset_annuality_usd=float(capacity[asset] * cc[asset]) if not extendable[asset] else 0.0,
+                ens_penalty_usd=float(variable[asset]) if is_ens else 0.0,
+            ))
+    detail = pd.DataFrame(rows, columns=[
+        "component", "carrier", "asset", "capital_cost", "variable_cost",
+        "fixed_asset_annuality_usd", "ens_penalty_usd",
+    ])
+    detail["total_cost"] = detail["capital_cost"] + detail["variable_cost"]
+    objective = float(net.objective)
+    declared_constant = getattr(net, "objective_constant", np.nan)
+    constant = float(declared_constant) if declared_constant is not None and np.isfinite(declared_constant) else inferred_constant
+    annualities = float(detail.capital_cost.sum())
+    variable = float(detail.variable_cost.sum())
+    ens = float(detail.ens_penalty_usd.sum())
+    fixed = float(detail.fixed_asset_annuality_usd.sum())
+    total = annualities + variable
+    residual = total - (objective + constant + fixed)
+    if validate and (not np.isfinite(residual) or abs(residual) > max(.01, 1e-8 * abs(total))):
+        raise ValueError(f"Annual cost reconciliation failed: residual={residual} USD")
+    return detail, dict(
+        objective=objective, objective_constant_usd=constant,
+        fixed_asset_annuality_usd=fixed, annualities_usd=annualities,
+        operation_cost_usd=variable-ens, ens_penalty_usd=ens,
+        annual_total_cost_usd=total, annual_cost_excluding_ens_usd=total-ens,
+        reconciliation_residual_usd=residual,
+        accounting_basis="annualized_cost_at_model_year; includes FOM in capital_cost",
+    )
+
+
+def final_electricity_consumption(net):
+    """Local electricity loads; storage conversion is not additional final demand."""
+    loads = _cost_frame(net.loads)
+    buses = _cost_frame(net.buses)
+    electricity_buses = buses.index[buses.carrier.eq("electricity")]
+    selected = loads.index[loads.bus.isin(electricity_buses)]
+    temporal = getattr(net.loads_t, "p", None)
+    if temporal is None or _cost_frame(temporal).empty:
+        temporal = net.loads_t.p_set
+    power = _cost_frame(temporal).reindex(index=net.snapshots, columns=selected, fill_value=0.0)
+    # The seven Magallanes cases have no final PtX/H2 export demand.
+    # Such demand must be represented explicitly before extending this metric.
+    return power.sum(axis=1)
 
 
 def _add_csv_driven_hydro_asset(
@@ -4320,6 +4499,12 @@ def build_case_network(
             constant=float(co2_cap_tons),
         )
 
+    # Cambio: activa cohortes sólo cuando el archivo general del caso lo solicita.
+    if _as_bool((general_settings or {}).get("enable_capacity_cohorts", False), default=False):
+        _prepare_capacity_cohorts(
+            n, previous_year_network, costs_df,
+            [capacity_df, storage_df, hydrogen_df], model_year,
+        )
     return n
 
 
@@ -5387,6 +5572,8 @@ def run_case(
             f"objective={objective_value}"
         )
 
+    # Cambio: guarda el año modelado de las ampliaciones después de una solución válida.
+    finalize_capacity_cohorts(network)
     return {
         "year": year,
         "weather_year": weather_year,
