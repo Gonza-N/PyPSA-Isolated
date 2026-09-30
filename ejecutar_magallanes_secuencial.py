@@ -19,15 +19,27 @@ def main():
         print(f"Output: {args.output_root}. Existing bundles are preserved.")
         return
     notebook = json.loads((root / "case_analysis_Magallanes.ipynb").read_text(encoding="utf-8"))
-    namespace = {
-        "__name__": "__magallanes_sequential__",
-        "GONZALO_RUN_SIMULATIONS": True,
-        "GONZALO_OUTPUT_ROOT": args.output_root,
-    }
+    namespace = {"__name__": "__magallanes_sequential__"}
     # Source markers protect against accidental cell reordering.
-    expected = {2: "import config", 3: "RUN_SIMULATIONS", 5: "years =",
-                7: "def run_selected_scenarios"}
-    for index, marker in expected.items():
+    expected = {2: "import config", 3: "RUN_SIMULATIONS", 7: "years =",
+                9: "def run_selected_scenarios"}
+    for index in (2, 3):
+        marker = expected[index]
+        source = "".join(notebook["cells"][index]["source"])
+        if marker not in source:
+            raise RuntimeError(f"Notebook layout changed at cell {index}; review the runner.")
+        exec(compile(source, f"case_analysis_Magallanes.ipynb:cell{index}", "exec"), namespace)
+    namespace["RUN_SIMULATIONS"] = True
+    namespace["OUTPUT_ROOT"] = Path(args.output_root)
+    namespace["SIMULATION_EXPORT_DIR"] = namespace["OUTPUT_ROOT"] / "simulations"
+    namespace["TABLE_EXPORT_DIR"] = namespace["OUTPUT_ROOT"] / "tables"
+    namespace["PAPER_FIGURE_DIR"] = namespace["OUTPUT_ROOT"] / "figures"
+    namespace["ROBUSTNESS_EXPORT_DIR"] = namespace["OUTPUT_ROOT"] / "robustness"
+    for key in ("OUTPUT_ROOT", "SIMULATION_EXPORT_DIR", "TABLE_EXPORT_DIR",
+                "PAPER_FIGURE_DIR", "ROBUSTNESS_EXPORT_DIR"):
+        namespace[key].mkdir(parents=True, exist_ok=True)
+    for index in (7, 9):
+        marker = expected[index]
         source = "".join(notebook["cells"][index]["source"])
         if marker not in source:
             raise RuntimeError(f"Notebook layout changed at cell {index}; review the runner.")
