@@ -1,6 +1,6 @@
 zone,annual_mean_mw,lat,lon,enabled,description,annual_demand_mwh,demand_reference_year,source
-punta_arenas_centro,38.203767,-53.163,-70.917,TRUE,Punta Arenas aggregated demand node,334665,2025,"CNE Preliminary Demand Forecast 2024-2044, Table 6.2"
+punta_arenas_centro,38.203767,-53.163,-70.917,TRUE,Punta Arenas aggregated demand node,334665,2025,"CNE (2024), Informe Preliminar de Prevision de Demanda 2024-2044 (Res. Ex. 675 of 16 Dec 2024), Table 6.2"
 cabo_negro,0,-52.966,-70.829,TRUE,Cabo Negro generation node inherited from the Punta Arenas case,0,2025,PyPSA-Isolated Punta Arenas case
-puerto_natales,6.842808,-51.729,-72.506,TRUE,Puerto Natales integrated demand and generation node,59943,2025,"CNE Preliminary Demand Forecast 2024-2044, Table 6.2"
-porvenir,3.753539,-53.296,-70.367,TRUE,Porvenir integrated demand and generation node,32881,2025,"CNE Preliminary Demand Forecast 2024-2044, Table 6.2"
-puerto_williams,0.726826,-54.934,-67.609,TRUE,Puerto Williams integrated demand and generation node,6367,2025,"CNE Preliminary Demand Forecast 2024-2044, Table 6.2"
+puerto_natales,6.842808,-51.729,-72.506,TRUE,Puerto Natales integrated demand and generation node,59943,2025,"CNE (2024), Informe Preliminar de Prevision de Demanda 2024-2044 (Res. Ex. 675 of 16 Dec 2024), Table 6.2"
+porvenir,3.753539,-53.296,-70.367,TRUE,Porvenir integrated demand and generation node,32881,2025,"CNE (2024), Informe Preliminar de Prevision de Demanda 2024-2044 (Res. Ex. 675 of 16 Dec 2024), Table 6.2"
+puerto_williams,0.726826,-54.934,-67.609,TRUE,Puerto Williams integrated demand and generation node,6367,2025,"CNE (2024), Informe Preliminar de Prevision de Demanda 2024-2044 (Res. Ex. 675 of 16 Dec 2024), Table 6.2"

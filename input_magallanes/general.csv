@@ -2,8 +2,8 @@ parameter,value,unit,enabled,description,source
 slack_cost_per_mwh,100000,USD/MWh,TRUE,Penalty for unserved electricity demand,PyPSA-Isolated modelling assumption
 currency,USD,,TRUE,Model reporting currency,Case convention
 currency_year,2025,year,TRUE,Reference currency year,Case convention
-demand_reference_year,2025,year,TRUE,Base year for the four medium-system demand forecasts,CNE Table 6.2
-total_annual_demand_2025_mwh,433856,MWh/year,TRUE,"Sum of Punta Arenas, Puerto Natales, Porvenir, and Puerto Williams",CNE Table 6.2
+demand_reference_year,2025,year,TRUE,Base year for the four medium-system demand forecasts,"CNE (2024), Informe Preliminar de Prevision de Demanda 2024-2044 (Res. Ex. 675 of 16 Dec 2024), Table 6.2"
+total_annual_demand_2025_mwh,433856,MWh/year,TRUE,"Sum of Punta Arenas, Puerto Natales, Porvenir, and Puerto Williams","CNE (2024), Informe Preliminar de Prevision de Demanda 2024-2044 (Res. Ex. 675 of 16 Dec 2024), Table 6.2"
 h2_lhv_mwh_per_ton,33.33,MWh/tH2,TRUE,Hydrogen lower heating value used for reporting,Standard conversion
 enable_ptx,FALSE,boolean,TRUE,Power-to-X export chains are excluded,Case definition
 enable_uhs,FALSE,boolean,TRUE,Underground hydrogen storage is excluded,Case definition
