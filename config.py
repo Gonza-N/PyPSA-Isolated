@@ -2872,6 +2872,7 @@ def build_case_network(
         marginal_cost: float,
         shared_capacity_with: Optional[str] = None,
         is_bidirectional_reverse: bool = False,
+        inherited_cap_mw: Optional[float] = None,
     ) -> None:
         """Add one non-negative directional Link for a transmission corridor.
 
@@ -2880,10 +2881,18 @@ def build_case_network(
         objective contributions when a positive marginal_cost is multiplied by
         negative link flow.
         """
+        # Year-linking for interlinks: an expandable corridor starts each year
+        # with the capacity optimized the year before, as generators, storage units and H2 links already do.
+        # existing_capacity_mw and p_nom_max keep the CSV value, so modules are still counted from the original
+        # capacity and max_modules is a total, not a per-year limit. PyPSA subtracts capital_cost * p_nom of
+        # extendable components from the objective, so the inherited capacity is not charged again.
+        floor_mw = float(existing_cap_mw)
+        if expandable and inherited_cap_mw is not None and np.isfinite(inherited_cap_mw):
+            floor_mw = max(floor_mw, float(inherited_cap_mw))
         attrs = {
             "bus0": f"elec_{source_zone}",
             "bus1": f"elec_{sink_zone}",
-            "p_nom": float(existing_cap_mw),
+            "p_nom": floor_mw,
             "p_nom_extendable": bool(expandable),
             "efficiency": 1.0 - loss_fraction,
             "carrier": "electricity",
@@ -2895,7 +2904,7 @@ def build_case_network(
         }
 
         if expandable:
-            attrs["p_nom_min"] = float(existing_cap_mw)
+            attrs["p_nom_min"] = floor_mw
 
             if discrete_expansion:
                 if not np.isfinite(module_capacity_mw) or module_capacity_mw <= 0:
@@ -2905,7 +2914,7 @@ def build_case_network(
                 if min_modules < 0 or min_modules > max_modules:
                     raise ValueError(f"Discrete expandable interlink {link_id} has invalid min_modules/max_modules.")
 
-                attrs["p_nom_min"] = float(existing_cap_mw + module_capacity_mw * min_modules)
+                attrs["p_nom_min"] = max(floor_mw, float(existing_cap_mw + module_capacity_mw * min_modules))
                 attrs["p_nom_max"] = float(existing_cap_mw + module_capacity_mw * max_modules)
             elif np.isfinite(max_capacity_mw):
                 if max_capacity_mw < existing_cap_mw:
@@ -2962,6 +2971,17 @@ def build_case_network(
         capital_cost = _safe_float(link_dict.get("capital_cost", 0.0), 0.0)
         marginal_cost = _safe_float(link_dict.get("marginal_cost", 0.0), 0.0)
 
+        # Year-linking: capacity optimized the previous year in the master direction.
+        inherited_cap_mw = None
+        if previous_year_network is not None and expandable:
+            master_id = f"{base_link_id}_fwd" if bidirectional else base_link_id
+            inherited_cap_mw = _previous_nominal_capacity(previous_year_network, "links", master_id, existing_cap_mw)
+            # Modular corridors: snap to a whole number of modules, so solver tolerance (e.g. 33.0003 MW) cannot
+            # force an extra module; both directions receive the same value.
+            if discrete_expansion and np.isfinite(module_capacity_mw) and module_capacity_mw > 0:
+                n_prev = max(0, round((inherited_cap_mw - existing_cap_mw) / module_capacity_mw))
+                inherited_cap_mw = existing_cap_mw + module_capacity_mw * n_prev
+
         if bidirectional:
             # A physical bidirectional corridor is represented by two one-way
             # links with the same optimized capacity. Capex is charged once, on
@@ -2985,6 +3005,7 @@ def build_case_network(
                 marginal_cost=marginal_cost,
                 shared_capacity_with=None,
                 is_bidirectional_reverse=False,
+                inherited_cap_mw=inherited_cap_mw,
             )
             _add_directed_interlink(
                 link_id=reverse_id,
@@ -3003,6 +3024,7 @@ def build_case_network(
                 marginal_cost=marginal_cost,
                 shared_capacity_with=forward_id,
                 is_bidirectional_reverse=True,
+                inherited_cap_mw=inherited_cap_mw,
             )
         else:
             _add_directed_interlink(
@@ -3021,6 +3043,7 @@ def build_case_network(
                 marginal_cost=marginal_cost,
                 shared_capacity_with=None,
                 is_bidirectional_reverse=False,
+                inherited_cap_mw=inherited_cap_mw,
             )
 
     if capacity_df is not None:
