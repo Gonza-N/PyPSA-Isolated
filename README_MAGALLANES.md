@@ -40,5 +40,5 @@ La corrida resuelve los 13 escenarios en sus cinco años (65 casos), hace las ta
 ## Cómo leer los resultados
 
 - `metadata.json` de cada caso trae el objetivo del optimizador, que es la cuota anual de lo que se construye ese año más los costos variables. El costo completo del sistema suma además la cuota de lo que ya existía al empezar el año y el costo fijo de las térmicas existentes, y no incluye la penalización de la energía no suministrada. Lo calcula la última celda y queda en `tables/average_system_cost_by_scenario.csv`.
-- Gurobi acepta una brecha de optimalidad de 2 %, así que dos resultados que difieren en menos de eso se consideran empatados. La brecha, la cota y el tiempo de cada caso quedan en `metadata.json`.
+- La brecha de optimalidad pedida a Gurobi es de 2 % entre 2025 y 2045 y de 0,1 % en 2050 (`mip_gap_by_year`, celda 5), el año en que se comparan los escenarios. Con 2 % en 2050, un caso conectado salía más caro que el aislado. La brecha, la cota y el tiempo de cada caso quedan en `metadata.json`.
 - Las series horarias están en UTC, tres horas adelantadas respecto de Magallanes. 2040 es bisiesto (8.784 horas) y su demanda queda 0,22 % sobre la de entrada.
