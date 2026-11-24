@@ -5,6 +5,9 @@ Este fork usa PyPSA-Isolated (V. Sepúlveda, versión `577951d`) para el caso de
 ## Qué cambia respecto del repositorio original
 
 - **Datos del caso** (`input_magallanes/`): demanda, parque existente, costos, límites, almacenamiento, hidrógeno y líneas, cada valor con su fuente en la columna `source`. Se agregaron dos nodos eólicos, la ZAE de Porvenir y Laguna Blanca, ambos dentro de las Zonas de Aptitud Energética del PEER de Magallanes.
+- **Casos de sensibilidad.** Usan la misma carpeta `input_magallanes` y solo agregan archivos, así que la base no cambia.
+  - `case_analysis_Magallanes_electrification.ipynb`: calefacción residencial y vehículos livianos con los valores del escenario Carbono Neutralidad de la PELP 2023-2027. Toma la demanda de `demand_profiles_scenarios/demand_profiles_electrification.csv` (`config_demand_scenarios_electrification.csv` y `electrification_profiles.csv`). Siete escenarios.
+  - `case_analysis_Magallanes_gas_subsidy.ipynb`: el gas mantiene el subsidio después de 2025. Toma los costos de `costs_gas_subsidy.csv`. Cinco escenarios.
 - **Cuaderno** (`case_analysis_Magallanes.ipynb`): trae la escala de 13 escenarios, los años 2025, 2030, 2040, 2045 y 2050, la regla de topes de emisiones `bau_XX_2050`, un límite de 21.600 s por caso para Gurobi (los casos de la base terminan antes de 10.800 s) y la simulación activada (`RUN_SIMULATIONS = True`).
 - **Código** (`config.py`): un solo cambio. Las líneas ampliables parten cada año con la capacidad que dejó el año anterior, igual que los generadores y el almacenamiento.
 
